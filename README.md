@@ -413,6 +413,8 @@ export function H6ForTableOfContents({
 
 Then, in your page (can be a React Server Component), import your desired MDX file and pass in the table of contents components in using the `components` prop:
 
+// TODO: Check code below
+
 ```tsx
 import type { MDXComponents } from 'mdx/types.js';
 import type { JSX } from 'react';
