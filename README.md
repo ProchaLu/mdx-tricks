@@ -434,7 +434,7 @@ export function H6ForTableOfContents({
 
 Next, in your page (React Server Component), import your desired MDX file and pass in the table of contents components in using the `components` prop:
 
-`app/recipes/[slug]/page.tsx`
+`app/recipes/[recipeSlug]/page.tsx`
 
 ```tsx
 import type { MDXComponents } from 'mdx/types';
@@ -455,7 +455,7 @@ type RecipeMdxModule = {
   default: (props: {
     readonly components?: MDXComponents | undefined;
     params: {
-      slug: string;
+      recipeSlug: string;
     };
   }) => JSX.Element;
   metadata: {
@@ -465,7 +465,7 @@ type RecipeMdxModule = {
 
 type Props = {
   params: Promise<{
-    slug: string;
+    recipeSlug: string;
   }>;
 };
 
@@ -476,7 +476,7 @@ export default async function RecipePage(props: Props) {
 
   try {
     recipeModule = (await import(
-      `./content/${params.slug}/index.mdx`
+      `./content/${params.recipeSlug}/index.mdx`
     )) as RecipeMdxModule;
   } catch {
     notFound();
@@ -512,7 +512,7 @@ export default async function RecipePage(props: Props) {
 
 Finally, create the MDX files and prop drill the components so that the headings will self-register themselves in the table of contents:
 
-`app/recipes/[slug]/content/apple-pie/index.mdx`
+`app/recipes/[recipeSlug]/content/apple-pie/index.mdx`
 
 ```mdx
 import Filling from './filling.mdx';
@@ -521,7 +521,7 @@ export const metadata = {
   title: 'Apple Pie Recipe',
 };
 
-{/* components passed from MDXContent in `app/recipes/[slug]/page.tsx` need to be prop drilled to imports, because nested MDXProvider not yet supported by @next/mdx https://github.com/vercel/next.js/issues/69613 */}
+{/* components passed from MDXContent in `app/recipes/[recipeSlug]/page.tsx` need to be prop drilled to imports, because nested MDXProvider not yet supported by @next/mdx https://github.com/vercel/next.js/issues/69613 */}
 
 <Filling components={props.components} />
 
@@ -532,7 +532,7 @@ export const metadata = {
 ### The criss-cross top
 ```
 
-`app/recipes/[slug]/content/apple-pie/filling.mdx`
+`app/recipes/[recipeSlug]/content/apple-pie/filling.mdx`
 
 ```mdx
 ## Filling
