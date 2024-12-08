@@ -182,7 +182,7 @@ import Filling from './filling.mdx';
 <h3 id="the-criss-cross-top">The criss-cross top</h3>
 ```
 
-To avoid multiple tables of contents on a single HTML page, a table of contents can be built dynamically using React Context. The following example of this approach uses Next.js (App Router with React Server Components) and Tailwind CSS.
+To avoid multiple tables of contents on a single HTML page, a table of contents can be built dynamically using React Context. The following example of this approach uses Next.js (App Router with React Server Components) and [`@next/mdx`](https://www.npmjs.com/package/@next/mdx).
 
 First, set up the components and Context:
 
@@ -461,7 +461,7 @@ export default async function Page(props: Props) {
 
   return (
     <TableOfContentsProvider>
-      <details className="mt-[-0.6rem]">
+      <details>
         <summary>Table of Contents</summary>
         <TableOfContents />
       </details>
