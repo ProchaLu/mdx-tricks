@@ -8,6 +8,8 @@ A collection of useful MDX tricks
 
 The following MDX...
 
+`index.mdx`
+
 ```mdx
 # Apple Pie Recipe
 
@@ -96,6 +98,8 @@ One place where `@jsdevtools/rehype-toc` (and the other existing remark and rehy
 
 If the "Filling" section (or the whole "Apple Pie Recipe" section) is moved out into its own file...
 
+`index.mdx`
+
 ```mdx
 import Filling from './filling.mdx';
 
@@ -108,6 +112,16 @@ import Filling from './filling.mdx';
 ### Preparing the dough
 
 ### The criss-cross top
+```
+
+`filling.mdx`
+
+```mdx
+## Filling
+
+### Preparing the apples
+
+### Preparing the spice mix
 ```
 
 ...[multiple tables of content get generated](https://github.com/orgs/mdx-js/discussions/2526) - see the "Filling" table of contents above the `<h2>`:
@@ -182,7 +196,14 @@ import Filling from './filling.mdx';
 <h3 id="the-criss-cross-top">The criss-cross top</h3>
 ```
 
-To avoid multiple tables of contents on a single HTML page, a table of contents can be built dynamically using React Context. The following example of this approach uses Next.js (App Router with React Server Components) and [`@next/mdx`](https://www.npmjs.com/package/@next/mdx).
+To avoid multiple tables of contents on a single HTML page, a table of contents can be built dynamically using React Context.
+
+The following example of this approach uses:
+
+- Next.js (App Router with React Server Components)
+- [`@next/mdx`](https://www.npmjs.com/package/@next/mdx)
+- [`rehype-autolink-headings`](https://www.npmjs.com/package/rehype-autolink-headings)
+- [`rehype-slug`](https://www.npmjs.com/package/rehype-slug)
 
 First, set up the components and Context:
 
@@ -411,12 +432,12 @@ export function H6ForTableOfContents({
 }
 ```
 
-Then, in your page (can be a React Server Component), import your desired MDX file and pass in the table of contents components in using the `components` prop:
+Next, in your page (React Server Component), import your desired MDX file and pass in the table of contents components in using the `components` prop:
 
-// TODO: Check code below
+`app/recipes/[slug]/page.tsx`
 
 ```tsx
-import type { MDXComponents } from 'mdx/types.js';
+import type { MDXComponents } from 'mdx/types';
 import type { JSX } from 'react';
 import {
   H1ForTableOfContents,
@@ -428,16 +449,18 @@ import {
   TableOfContents,
   TableOfContentsProvider,
 } from './TableOfContents.tsx';
+import { notFound } from 'next/navigation';
 
-type MdxModule = {
-  default: (
-    props: {
-      readonly components?: MDXComponents | undefined;
-      params: {
-        slug: string;
-      };
-    },
-  ) => JSX.Element;
+type RecipeMdxModule = {
+  default: (props: {
+    readonly components?: MDXComponents | undefined;
+    params: {
+      slug: string;
+    };
+  }) => JSX.Element;
+  metadata: {
+    title: string;
+  };
 };
 
 type Props = {
@@ -446,38 +469,78 @@ type Props = {
   };
 };
 
-export default async function Page(props: Props) {
-  let curriculumModule;
+export default async function RecipePage(props: Props) {
+  let recipeModule;
 
   try {
-    curriculumModule = (await import(
+    recipeModule = (await import(
       `./content/${props.params.slug}/index.mdx`
-    )) as MdxModule
+    )) as RecipeMdxModule;
   } catch {
     notFound();
   }
 
-  const MDXContent = curriculumModule.default;
+  const MDXContent = recipeModule.default;
 
   return (
-    <TableOfContentsProvider>
-      <details>
-        <summary>Table of Contents</summary>
-        <TableOfContents />
-      </details>
+    <>
+      <h1>{recipeModule.metadata.title}</h1>
+      <TableOfContentsProvider>
+        <details>
+          <summary>Table of Contents</summary>
+          <TableOfContents />
+        </details>
 
-      <MDXContent
-        params={props.params}
-        components={{
-          h1: H1ForTableOfContents,
-          h2: H2ForTableOfContents,
-          h3: H3ForTableOfContents,
-          h4: H4ForTableOfContents,
-          h5: H5ForTableOfContents,
-          h6: H6ForTableOfContents,
-        }}
-      />
-    </TableOfContentsProvider>
+        <MDXContent
+          params={props.params}
+          components={{
+            h1: H1ForTableOfContents,
+            h2: H2ForTableOfContents,
+            h3: H3ForTableOfContents,
+            h4: H4ForTableOfContents,
+            h5: H5ForTableOfContents,
+            h6: H6ForTableOfContents,
+          }}
+        />
+      </TableOfContentsProvider>
+    </>
   );
 }
 ```
+
+Finally, create the MDX files and prop drill the components so that the headings will self-register themselves in the table of contents:
+
+`app/recipes/[slug]/content/apple-pie/index.mdx`
+
+```mdx
+import Filling from './filling.mdx';
+
+export const metadata = {
+  title: 'Apple Pie Recipe',
+};
+
+{/* components passed from MDXContent in `app/recipes/[slug]/page.tsx` need to be prop drilled to imports, because nested MDXProvider not yet supported by @next/mdx https://github.com/vercel/next.js/issues/69613 */}
+
+<Filling components={props.components} />
+
+## Crust
+
+### Preparing the dough
+
+### The criss-cross top
+```
+
+`app/recipes/[slug]/content/apple-pie/filling.mdx`
+
+```mdx
+## Filling
+
+### Preparing the apples
+
+### Preparing the spice mix
+```
+
+TODO Add screenshot
+
+- GitHub repository: TODO
+- CodeSandbox Demo: TODO (take from repo)
