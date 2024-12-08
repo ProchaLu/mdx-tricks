@@ -464,17 +464,19 @@ type RecipeMdxModule = {
 };
 
 type Props = {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 };
 
 export default async function RecipePage(props: Props) {
+  const params = await props.params;
+
   let recipeModule;
 
   try {
     recipeModule = (await import(
-      `./content/${props.params.slug}/index.mdx`
+      `./content/${params.slug}/index.mdx`
     )) as RecipeMdxModule;
   } catch {
     notFound();
@@ -492,7 +494,7 @@ export default async function RecipePage(props: Props) {
         </details>
 
         <MDXContent
-          params={props.params}
+          params={params}
           components={{
             h1: H1ForTableOfContents,
             h2: H2ForTableOfContents,
